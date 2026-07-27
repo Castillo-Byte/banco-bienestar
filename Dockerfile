@@ -17,4 +17,4 @@ COPY --from=builder /app/target/* .jar app.jar
 #exponer el puerto (por defecto spring boot usa 8080)
 EXPOSE 8080
 #Comando para ejecutar la aplicacion
-ENTRYPONT["java", ".jar", "app.jar"]
+ENTRYPOINT["java", ".jar", "app.jar"]    
