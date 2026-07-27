@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(title='Clientes', content=~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes</title>
+</head>
+<body>
+   
+<section>
+
+ <div class="modal fade" id="modalActualizar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form th:action="@{/ejecutivoUsuarios/actualizar}" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title">Actualizar cliente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="id" id="modalId" />
+
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" name="nombre" id="modalNombre" required />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Usuario</label>
+            <input type="text" class="form-control" name="username" id="modalUsername" required />
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Nueva contraseña</label>
+            <input type="password" class="form-control" name="password" id="modalPassword"
+                   placeholder="Dejar vacío para no cambiarla" />
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('modalActualizar').addEventListener('show.bs.modal', function (event) {
+    const boton = event.relatedTarget;
+    document.getElementById('modalId').value = boton.getAttribute('data-id');
+    document.getElementById('modalNombre').value = boton.getAttribute('data-nombre');
+    document.getElementById('modalUsername').value = boton.getAttribute('data-username');
+    document.getElementById('modalPassword').value = '';
+  });
+</script>
+
+
+
+    <!-- Encabezado -->
+    <div class="d-flex align-items-center justify-content-between mt-4 mb-4">
+        <div>
+            <h2 class="display-6 fw-light text-secondary mb-0">
+                Clientes <span class="fw-bold text-primary">registrados</span>
+            </h2>
+            <p class="text-muted small mb-0">
+                Total: <strong th:text="${totalElementos}">0</strong> clientes
+            </p>
+            
+        </div>
+    </div>
+
+    <!-- Alerta éxito / error -->
+    <div class="alert alert-success d-flex align-items-center gap-2 py-2 mb-3"
+         th:if="${mensajeExito}" role="alert">
+        <i class="ti ti-circle-check fs-5"></i>
+        <span th:text="${mensajeExito}">Operación realizada correctamente.</span>
+    </div>
+    <div class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3"
+         th:if="${mensajeError}" role="alert">
+        <i class="ti ti-alert-circle fs-5"></i>
+        <span th:text="${mensajeError}">Error al realizar la operación.</span>
+    </div>
+
+    <!-- Card tabla -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+
+            <!-- Buscador -->
+            <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="ti ti-users text-primary"></i> Lista de clientes
+                </h6>
+
+                <form method="get" th:action="@{/ejecutivoUsuarios}" class="d-flex gap-2">
+                    <div class="input-group input-group-sm" style="width:240px;">
+                        <span class="input-group-text"><i class="ti ti-search"></i></span>
+                        <input type="text" class="form-control" name="q"
+                               th:value="${q}" placeholder="Buscar por nombre o usuario" />
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary">Buscar</button>
+                    <a th:href="@{/ejecutivoUsuarios}" class="btn btn-sm btn-outline-secondary">
+                        Limpiar
+                    </a>
+                </form>
+            </div>
+
+            <!-- Tabla -->
+            <div>
+                <!-- clientes activos -->
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Usuario</th>
+                            <th scope="col">CLABE</th>
+                            <th scope="col">Saldo</th>
+                            <th scope="col">accione</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="u : ${usuarios}">
+                            <td th:text="${u.nombre}"></td>
+                            <td th:text="${not #lists.isEmpty(u.cuentas)} ? ${u.cuentas[0].clabe} : '—'"></td>
+                            <td class="fw-bold text-primary"
+                                th:text="${not #lists.isEmpty(u.cuentas) ? ('$' + #numbers.formatDecimal(u.cuentas[0].saldo, 1, 'COMMA', 2, 'POINT') + ' MXN') : '—'}"
+                            ></td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-2">
+
+                                    <form 
+                                    th:action="@{/ejecutivoUsuarios/eliminar}" method="post"
+                                    onsubmit="return confirm('Estas seguro que deseas eliminar al usuario?')">
+                                    <input type="hidden" name="id" th:value="${u.id}" />
+                                    <button type="submit" class="btn btn-danger rounded shadow-sm"
+                                    title="Eliminar"><i class="fa-solid fa-trash-can"></i></button>
+                                    </form>
+
+                                    <form
+                                    th:action="@{/ejecutivoUsuario/actualizar}" method="post">
+                                    <input type="hidden" name="id" th:value="${u.id}"/>
+                                    <button type="button" class="btn btn-warning rounded shadow-sm"
+        title="Actualizar"
+        data-bs-toggle="modal"
+        data-bs-target="#modalActualizar"
+        th:data-id="${u.id}"
+        th:data-nombre="${u.nombre}"
+        th:data-username="${u.username}"
+        th:data-saldo="${not #lists.isEmpty(u.cuentas)} ? ${u.cuentas[0].saldo} : 0">
+    <i class="fa-solid fa-pen"></i>
+</button>
+                                    </form>
+
+                                </div>
+
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(usuarios)}">
+                            <td colspan="3" class="text-center text-muted py-3">
+                                No se encontraron clientes.
+                            </td>
+                            
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2"
+                 th:if="${not #lists.isEmpty(clientes)}">
+                <small class="text-muted">
+                    Página <strong th:text="${paginaActual + 1}">1</strong>
+                    de <strong th:text="${totalPaginas}">1</strong>
+                    &mdash; <strong th:text="${totalElementos}">0</strong> clientes
+                </small>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0">
+                        <!-- Anterior -->
+                        <li th:class="${'page-item ' + (paginaActual == 0 ? 'disabled' : '')}">
+                            <a class="page-link"
+                               th:href="@{/ejecutivo/usuarios(pagina=${paginaActual - 1}, q=${q})}">
+                                <i class="ti ti-chevron-left"></i>
+                            </a>
+                        </li>
+                        <!-- Páginas -->
+                        <li th:each="i : ${#numbers.sequence(0, totalPaginas - 1)}"
+                            th:class="${'page-item ' + (i == paginaActual ? 'active' : '')}">
+                            <a class="page-link" th:text="${i + 1}"
+                               th:href="@{/ejecutivo/usuarios(pagina=${i}, q=${q})}">1</a>
+                        </li>
+                        <!-- Siguiente -->
+                        <li th:class="${'page-item ' + (paginaActual + 1 == totalPaginas ? 'disabled' : '')}">
+                            <a class="page-link"
+                               th:href="@{/ejecutivo/usuarios(pagina=${paginaActual + 1}, q=${q})}">
+                                <i class="ti ti-chevron-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+
+        </div>
+    </div>
+
+</section>
+</body>
+</html>

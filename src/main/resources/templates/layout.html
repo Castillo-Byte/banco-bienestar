@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">Banco de Mexico</title>
+<!--- css de bootstrap -->   
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+<body>
+   <nav class="navbar nb-nav" role="navigation" aria-label="Navegación principal">
+ 
+    <!-- Logo -->
+    <a class="nb-logo" href="#" aria-label="Banco Aurum — Inicio">
+      <div class="nb-logo-icon">
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M10 1L2 6v1h16V6L10 1zm-8 7v8h3v-6h2v6h2v-6h2v6h2v-6h2v6h3V8H2zm9 0H9v1h2V8z"/>
+        </svg>
+      </div>
+      <div class="nb-logo-text">
+        <span class="nb-logo-name">Banco bienestar</span>
+        <span class="nb-logo-tagline">Banca personal &amp; empresarial</span>
+      </div>
+    </a>
+ 
+    <!-- Links -->
+    <ul class="nb-links" role="list">
+      <li sec:authorize="hasRole('CLIENTE')">
+  <a th:href="@{/dashboard}" class="nb-link active" aria-current="page">
+    <i class="ti ti-home" aria-hidden="true"></i> Inicio
+  </a>
+</li>
+      <li sec:authorize="hasRole('CLIENTE')">
+        <button class="nb-link">
+          <i class="ti ti-credit-card" aria-hidden="true"></i> Cuenta
+          <i class="ti ti-chevron-down nb-chev" aria-hidden="true"></i>
+        </button>
+        <div class="nb-dropdown" role="menu">
+          <a th:href="@{/perfil}" role="menuitem"><i class="ti ti-wallet"></i> Perfil</a>
+          <a th:href="@{/detalleTarjeta}" role="menuitem"><i class="ti ti-piggy-bank"></i> Detalle de tarjeta</a>
+          <a th:href="@{/estadoCuenta}" role="menuitem"><i class="ti ti-receipt"></i> Estado de cuenta</a>
+        </div>
+      </li>
+      <li sec:authorize="hasRole('CLIENTE')">
+        <button class="nb-link">
+          <i class="ti ti-transfer" aria-hidden="true"></i> Transferencias
+          <i class="ti ti-chevron-down nb-chev" aria-hidden="true"></i>
+        </button>
+        <div class="nb-dropdown" role="menu">
+          <a th:href="@{/transferencia}" role="menuitem"><i class="ti ti-world"></i> Nueva Transferencia</a>
+          <a th:href="@{/movimientos}" role="menuitem"><i class="ti ti-clock-history"></i> Historial</a>
+        </div>
+      </li>
+      <li sec:authorize="hasRole('EJECUTIVO')">
+        <button class="nb-link">
+          <a th:href="@{/dashboard}" class="nb-link " aria-current="page">
+            <i class="ti ti-help-circle" aria-hidden="true"></i> Panel Ejecutivo
+          </a>
+          <i class="nb-chev" aria-hidden="true"></i>
+        </button>
+      </li>
+      <li>
+        <button class="nb-link">
+          <i class="ti ti-chart-line" aria-hidden="true"></i> Creditos
+          <i class="ti ti-chevron-down nb-chev" aria-hidden="true"></i>
+        </button>
+        <div class="nb-dropdown" role="menu">
+          <a th:href="@{/solicitudCredito}" sec:authorize="hasRole('CLIENTE')" role="menuitem"><i class="ti ti-trending-up"></i> Solicitud de crédito</a>
+          <a th:href="@{/adminCreditos}" sec:authorize="hasRole('EJECUTIVO')" role="menuitem"><i class="ti ti-certificate"></i> Lista de créditos</a>
+        </div>
+      </li>
+      <li sec:authorize="hasRole('EJECUTIVO')">
+        <button class="nb-link">
+          <i class="ti ti-chart-line" aria-hidden="true"></i> Clientes
+          <i class="ti ti-chevron-down nb-chev" aria-hidden="true"></i>
+        </button>
+        <div class="nb-dropdown" role="menu">
+          <a th:href="@{/registroClientes}" role="menuitem"><i class="ti ti-trending-up"></i> Registro de cliente</a>
+          <a th:href="@{/ejecutivoUsuarios}" role="menuitem"><i class="ti ti-certificate"></i> Lista de clientes</a>
+        </div>
+      </li>
+      <li sec:authorize="hasRole('EJECUTIVO')">
+        <button class="nb-link">
+          <a th:href="@{/admin/movimientos}" class="nb-link " aria-current="page">
+            <i class="ti ti-chart-line" aria-hidden="true"></i> Movimientos
+          </a>
+          <i class="nb-chev" aria-hidden="true"></i>
+        </button>
+      </li>
+      
+    </ul>
+ 
+    <!-- Acciones -->
+    <div class="nb-actions">
+      <button class="nb-icon-btn" aria-label="Notificaciones: 3 sin leer">
+        <i class="ti ti-bell" aria-hidden="true"></i>
+        <span class="nb-badge" aria-hidden="true"></span>
+      </button>
+      <div class="nb-sep" aria-hidden="true"></div>
+      <div class="nb-user-group">
+        <div class="nb-user-badge">
+          <i class="ti ti-user-circle" aria-hidden="true"></i>
+          <span class="small fw-semibold" sec:authentication="name">Usuario</span>
+          <span class="badge bg-primary-accent rounded-pill text-dark text-uppercase small" style="font-size: 0.65rem;" sec:authorize="hasRole('EJECUTIVO')">Ejecutivo</span>
+          <span class="badge bg-secondary-soft rounded-pill text-white text-uppercase small" style="font-size: 0.65rem;" sec:authorize="hasRole('CLIENTE')">Cliente</span>
+        </div>
+        <form th:action="@{/logout}" method="post" class="nb-logout-form">
+          <button type="submit" class="nb-btn-login">
+            <i class="ti ti-logout" aria-hidden="true"></i>Cerrar sesión
+          </button>
+        </form>
+      </div>
+    
+    </div>
+ 
+  </nav>
+  
+  <!-- Contenedor principal -->
+   <main class="container">
+    <div th:replace="${content}"></div>
+   </main>
+   <!-- Footer -->
+<footer class="bg-dark text-white mt-5 py-4">
+    <div class="container">
+
+        <div class="row">
+
+            <!-- Información -->
+            <div class="col-md-4">
+                <h5>Banco Aurum</h5>
+                <p class="mb-0">
+                    Banca personal & empresarial.
+                    Soluciones financieras seguras.
+                </p>
+            </div>
+
+            <!-- Enlaces -->
+            <div class="col-md-4">
+                <h5>Enlaces rápidos</h5>
+                <ul class="list-unstyled">
+                    <li><a href="#" class="text-white text-decoration-none">Inicio</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">Cuenta</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">Transferencias</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">Créditos</a></li>
+                    <li><a href="#" class="text-white text-decoration-none">Soporte</a></li>
+                </ul>
+            </div>
+
+            <!-- Contacto -->
+            <div class="col-md-4">
+                <h5>Contacto</h5>
+                <p class="mb-1">
+                    📞 800 123 4567
+                </p>
+                <p class="mb-1">
+                    ✉ contacto@bancobienestar.com
+                </p>
+                <p>
+                    📍 México
+                </p>
+            </div>
+
+        </div>
+
+        <hr>
+
+        <div class="text-center">
+            <small>
+                © 2026 Banco Aurum. Todos los derechos reservados.
+            </small>
+        </div>
+
+    </div>
+</footer>
+<!--- Importar Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+</body>
+</html>

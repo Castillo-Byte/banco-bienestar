@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es"  xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(title='Lista de Solicitudes', content=~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Solicitudes</title>
+    
+</head>
+<body>
+<section class="wrap">
+ 
+  <!-- Encabezado -->
+  <div class="page-hd">
+    <div>
+      <div class="page-title">
+        <i class="ti ti-file-certificate" aria-hidden="true"></i> Mis solicitudes de crédito
+      </div>
+      <div class="page-sub">
+        <span th:text="${usuario.nombre}">Juan</span>
+        &mdash; @<span th:text="${usuario.username}">jramirez</span>
+      </div>
+    </div>
+    <a th:href="@{/solicitudCredito}" class="btn-nueva">
+      <i class="ti ti-plus" aria-hidden="true"></i> Nueva solicitud
+    </a>
+  </div>
+ 
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label"><i class="ti ti-clock" aria-hidden="true"></i> Pendientes</div>
+      <div class="stat-value pend" th:text="${totalPendientes}">2</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><i class="ti ti-circle-check" aria-hidden="true"></i> Aprobadas</div>
+      <div class="stat-value apro" th:text="${totalAprobados}">1</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label"><i class="ti ti-circle-x" aria-hidden="true"></i> Rechazadas</div>
+      <div class="stat-value rech" th:text="${totalRechazadas}">0</div>
+    </div>
+  </div>
+ 
+  <!-- Tabla -->
+  <div class="card">
+    <div class="card-hd">
+      <i class="ti ti-list" aria-hidden="true"></i> Historial de solicitudes
+    </div>
+ 
+    <table>
+      <thead>
+        <tr>
+          <th style="width:50px;"></th>
+          <th>Solicitud</th>
+          <th class="td-fecha">Fecha</th>
+          <th class="right">Monto</th>
+          <th class="right">Firma</th>
+          <th class="right">Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+ 
+        <!-- Sin solicitudes -->
+        <tr th:if="${#lists.isEmpty(solicitudes)}">
+          <td colspan="5">
+            <div class="empty">
+              <i class="ti ti-file-off" aria-hidden="true"></i>
+              <p>No tienes solicitudes de crédito registradas.</p>
+              <a th:href="@{/credito/solicitar}" class="btn-empty">
+                <i class="ti ti-plus" aria-hidden="true"></i> Hacer mi primera solicitud
+              </a>
+            </div>
+          </td>
+        </tr>
+        <tr th:each="sol : ${solicitudes}">
+          <td>
+            <span class="badge bg-primary" th:text="${sol.id}">1</span>
+          </td>
+          <td>
+            <div class="fw-semibold">Solicitud de credito</div>
+          </td>
+          <td class="td-fecha"
+              th:text="${#temporals.format(sol.fecha, 'dd/MM/yyyy HH:mm')}">
+            01/01/2026 12:00
+          </td>
+          <td class="right fw-bold text-primary"
+              th:text="${'$' + #numbers.formatDecimal(sol.montoSolicitado, 1, 'COMMA', 2, 'POINT') + ' MXN'}">
+            $0.00 MXN
+          </td>
+          <td class="right">
+            <div class="mt-2 text-center border-top border-white-10 pt-2">
+                <span class="small text-muted d-block text-start mb-1 font-monospace" style="font-size: 0.65rem;">FIRMA DIGITAL REGISTRADA:</span>
+                <img th:src="${sol.firmaBase64}" alt="Firma Digital" class="img-fluid bg-white rounded p-1 border" style="max-height: 60px; object-fit: contain;">
+            </div>
+          </td>
+          <td class="right">
+            <span th:class="${'badge ' +
+              (sol.estado == 'APROBADA' or sol.estado == 'APROBADO' ? 'bg-success' :
+               sol.estado == 'RECHAZADA' or sol.estado == 'RECHAZADO' ? 'bg-danger' : 'bg-warning text-dark')}"
+              th:text="${sol.estado}">PENDIENTE</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+ 
+</section>
+ 
+</body>
+</html>

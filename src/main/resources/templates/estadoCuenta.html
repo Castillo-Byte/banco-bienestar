@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Helvetica, sans-serif; font-size: 12px; }
+        h1 { color: #1a2b4c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+        th { background-color: #f0f0f0; }
+        .rojo { color: #d9534f; }
+        .verde { color: #5cb85c; }
+    </style>
+</head>
+<body>
+    <h1>Banco Bienestar - Estado de Cuenta</h1>
+    <p>Cliente: <span th:text="${nombreCliente}"></span></p>
+    <p>CLABE: <span th:text="${cuentaClabe}"></span></p>
+    <p>Saldo actual: $<span th:text="${#numbers.formatDecimal(saldoTotal,1,'COMMA',2,'POINT')}"></span> MXN</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Fecha</th><th>Descripción</th><th>Monto</th><th>Tipo</th><th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="m : ${movimientos}">
+                <td th:text="${m.fecha}"></td>
+                <td th:text="${m.descripcion}"></td>
+                <td th:text="${m.monto}" th:classappend="${m.monto} lt 0 ? 'rojo' : 'verde'"></td>
+                <td th:text="${m.tipo}"></td>
+                <td th:text="${m.estadoMovimiento}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

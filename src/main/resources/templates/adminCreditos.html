@@ -1,0 +1,119 @@
+
+
+Panel creditos ejecutivo · HTML
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout('Panel de Creditos - Ejecutivo', ~{::section})}">
+<head>
+    <title>Panel de Creditos - Ejecutivo</title>
+</head>
+<body>
+<section>
+ 
+    <!-- Alert de Error o Exito -->
+    <div th:if="${param.error}" class="alert alert--custom-danger d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="fa-solid fa-triangle-exclamation fs-5"></i>
+        <div th:text="${param.error}">Error en la operacion.</div>
+    </div>
+ 
+    <div th:if="${param.exito}" class="alert alert--custom-success d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="fa-solid fa-circle-check fs-5"></i>
+        <div th:text="${param.exito}">Operacion completada con exito.</div>
+    </div>
+ 
+    <div class="card card-glassmorphic border-0 shadow-lg p-4 p-md-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h4 class="h5 fw-bold text-black mb-0">
+                <i class="fa-solid fa-file-invoice-dollar text-primary-accent me-1.5"></i>
+                Solicitudes de Credito
+            </h4>
+ 
+        </div>
+ 
+        <!-- Estado vacio -->
+        <div th:if="${#lists.isEmpty(solicitudes)}" class="text-center py-5">
+            <div class="mb-3"><i class="fa-solid fa-folder-open fs-2 text-muted"></i></div>
+            <h6 class="text-muted fw-normal small">No hay solicitudes de credito registradas.</h6>
+        </div>
+ 
+        <!-- Tabla de solicitudes -->
+        <div th:if="${not #lists.isEmpty(solicitudes)}" class="table-responsive">
+            <table class="table table-borderless align-middle mb-0" id="tablaSolicitudes">
+                <thead>
+                    <tr class="text-muted small text-uppercase font-monospace" style="font-size: 0.72rem;">
+                        <th>Cliente</th>
+                        <th>Monto</th>
+                        <th>Fecha</th>
+                        <th>Firma</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="sol : ${solicitudes}"
+                        class="fila-solicitud bg-dark-soft border border-secondary-soft"
+                        th:attr="data-estado=${sol.estado}">
+ 
+                        <!-- Cliente -->
+                        <td>
+                            <div class="fw-bold text-white" th:text="${sol.usuario != null ? sol.usuario.nombre : 'N/D'}">Nombre Cliente</div>
+                            <div class="text-muted small" th:text="${sol.usuario != null ? sol.usuario.username : ''}">usuario</div>
+                        </td>
+ 
+                        <!-- Monto -->
+                        <td>
+                            <span class="fw-bold text-white" th:text="'$' + ${#numbers.formatDecimal(sol.montoSolicitado, 1, 'COMMA', 2, 'POINT')}">$0.00</span>
+                        </td>
+ 
+                        <!-- Fecha -->
+                        <td>
+                            <span class="text-muted small font-monospace" th:text="${#temporals.format(sol.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                        </td>
+ 
+                        <!-- Firma -->
+                        <td>
+                            <img th:if="${sol.firmaBase64 != null}"  th:src="${sol.firmaBase64}"  alt="Firma"  class="img-fluid bg-white rounded p-1 border"   style="max-height: 40px; max-width: 100px; object-fit: contain;">
+                        </td>
+ 
+                        <!-- Estado -->
+                        <td>
+                            <span class="badge fw-bold rounded-pill text-uppercase small"
+                                  style="font-size: 0.65rem;"
+                                  th:classappend="${sol.estado == 'APROBADO'} ? 'bg-success text-dark' : (${sol.estado == 'RECHAZADO'} ? 'bg-danger text-white' : 'bg-warning text-dark')"
+                                  th:text="${sol.estado}">PENDIENTE</span>
+                        </td>
+ 
+                        <!-- Acciones: solo si esta pendiente -->
+                        <td class="text-end">
+                            <div th:if="${sol.estado == 'PENDIENTE'}" class="d-flex gap-2 justify-content-end">
+ 
+                                <!-- Aprobar -->
+                                <form th:action="@{/ejecutivo/aprobar-credito}" method="post">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" name="id" th:value="${sol.id}">
+                                    <button type="submit" class="btn btn-sm btn-primary-accent rounded-pill px-3 fw-bold text-dark">
+                                        <i class="fa-solid fa-check"></i> 
+                                    </button>
+                                </form>
+ 
+                                <!-- Rechazar -->
+                                <form th:action="@{/ejecutivo/rechazar-credito}" method="post">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                    <input type="hidden" name="id" th:value="${sol.id}">
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary-accent rounded-pill px-3">
+                                        <i class="fa-solid fa-xmark"></i> 
+                                    </button>
+                                </form>
+                            </div>
+ 
+                            <span th:if="${sol.estado != 'PENDIENTE'}" class="text-muted small fst-italic">Sin acciones</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+ 
+</section>
+</body>
+</html>
+ 

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(title='Dashboard', content=~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+</head>
+<body>
+    <section>
+        <div class="bg-white rounded shadow-sm p-4 p-mb-5">
+            <h2 class="display-6 fw-light text-secondary mb-4">
+                Bienvenido de nuevo
+                <span class="fw-bold text-primary" th:text="${nombreCliente}">Usuario</span>
+            </h2>
+            <div class="row mb-5">
+                <div class="col-md-6">
+                    <!---Tarjeta de saldo-->
+                    <div class="bg-primary bg-gradient rounded p-4 text-white shadow">
+                        <h3 class="h6 text-uppercase text-white-50 tracking-wider mb-2">
+                            Cuenta de debito principal
+                        </h3>
+                        <p class="display-5 fw-bold mb-3">
+                            <span th:text="${#numbers.formatDecimal(saldoTotal, 1,'COMMA',2,'POINT')}">0.00</span> MXN</p>
+                            <p class="small text-white-50 font-monospace mb-0" th:text="'CLABE: ' + ${cuentaClabe}">Clabe:0000000000</p>
+                    </div>
+            </div>
+        </div>
+        <!---Tabla de movimientos recientes-->
+        <h3 class="h5 fw-bold text-dark mb-3">Movimientos recientes</h3>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered bg-white align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Monto</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                        <!---bucle con thymeleaf-->
+                        <tr th:each="movimiento : ${movimientos}">
+                            <td th:text="${movimiento.fecha}">01/01/2000</td>
+                            <td th:text="${movimiento.descripcion}">Compra</td>
+                            <td class="text-end fw-bold"
+                            th:classappend="${movimiento.monto} < 0 ? 'text-danger' : 'text-success'"
+                            th:text="${movimiento.monto}">
+                                $0.00
+                            </td>
+                            <td th:text="${movimiento.tipo}">Deposito</td>
+                            <td th:text="${movimiento.estadoMovimiento}">AUTORIZADO</td>
+
+                        </tr>
+                    </tbody>
+            </table>
+        </div>
+        <!---seccion de graficas-->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0">
+                    <h3 class="h5 fw-bold text-dark mb-4">
+                        Distribucion de gastos</h3>
+                        <canvas id="graficaGastos"></canvas>
+                </div>
+            </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 p-3">
+            <h3 class="h5 fw-bold text-dark mb-4">Distribución de ingresos</h3>
+            <canvas id="graficaIngresos"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6 mt-3">
+        <div class="card shadow-sm border-0 p-3">
+            <h3 class="h5 fw-bold text-dark mb-4">Movimientos por tipo</h3>
+            <canvas id="graficaMovimientos"></canvas>
+        </div>
+    </div>
+</div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                fetch("/api/v1/finanzas/gastos-mes")
+                .then(response => {
+                    if (!response.ok) 
+                    throw new Error("Error en la Red al obtener los datos de gastos");
+                    
+                    return response.json();
+                })
+                .then(datosJson =>{
+                    //mapeo de los datos Json para la pagina
+                    const etiqueta= datosJson.map(item => item.categoria);
+                    const valores= datosJson.map(item => item.monto);
+                    const color= datosJson.map(item => item.colorHex);
+
+                    const ctx= document.getElementById("graficaGastos").getContext('2d');
+                    new Chart(
+                    ctx,{
+                        type:'doughnut',
+                        data:{labels: etiqueta,
+                        datasets:[{
+                            data: valores,
+                            backgroundColor: color,
+                            borderWidth:2,
+                            hoverOffset:4
+
+
+                        }]
+                        },
+                        options:{
+                        responsive:true,
+                        maintainAspectRatio:true,
+                        plugins:{
+                            legend:{position:'right'}
+                        }
+                        }
+
+                    }
+                    );
+                    
+                })
+
+    // Gráfica 2: Distribución de ingresos
+    fetch("/api/v1/finanzas/ingresos-mes")
+        .then(response => {
+            if (!response.ok) throw new Error("Error en la red al obtener los datos de ingresos");
+            return response.json();
+        })
+        .then(datosJson => {
+            const ctx = document.getElementById("graficaIngresos").getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: datosJson.map(item => item.categoria),
+                    datasets: [{
+                        data: datosJson.map(item => item.monto),
+                        backgroundColor: datosJson.map(item => item.colorHex),
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+        })
+        .catch(err => console.error(err));
+
+    // Gráfica 3: Movimientos por tipo
+    fetch("/api/v1/finanzas/movimientos-por-tipo")
+        .then(response => {
+            if (!response.ok) throw new Error("Error en la red al obtener los movimientos por tipo");
+            return response.json();
+        })
+        .then(datosJson => {
+            const ctx = document.getElementById("graficaMovimientos").getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: datosJson.map(item => item.categoria),
+                    datasets: [{
+                        data: datosJson.map(item => item.cantidad),
+                        backgroundColor: datosJson.map(item => item.colorHex),
+                        borderWidth: 2,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'right' } }
+                }
+            });
+        })
+        .catch(err => console.error(err));
+
+            });
+           
+         </script>
+
+    </div>
+    </section>
+
+</body>
+</html>

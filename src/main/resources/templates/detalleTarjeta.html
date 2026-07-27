@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(title='Mi Cuenta', content=~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi cuenta</title>
+    
+</head>
+<body>
+    
+<section>
+ 
+    <!-- Encabezado -->
+    <div class="d-flex align-items-center justify-content-between mt-4 mb-4">
+        <div>
+            <h2 class="display-6 fw-light text-secondary mb-0">
+                Mi <span class="fw-bold text-primary">Cuenta</span>
+            </h2>
+            <p class="text-muted small mb-0">
+                Información de tu cuenta bancaria
+            </p>
+        </div>
+    </div>
+ 
+    <div class="row g-4">
+ 
+        <!-- ── Tarjeta visual ── -->
+        <div class="col-md-5">
+            <div class="card border-0 shadow text-white mb-3"
+                 style="background: linear-gradient(135deg, #0a3d62, #1e3799); border-radius: 16px; min-height: 200px;">
+                <div class="card-body p-4">
+ 
+                    <!-- Logo banco -->
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <div class="fw-bold" style="font-family:'Playfair Display',serif;font-size:18px;">
+                                Banco Bienestar
+                            </div>
+                            <div style="font-size:10px;letter-spacing:0.1em;opacity:0.7;">
+                                BANCA PERSONAL
+                            </div>
+                        </div>
+                        <i class="ti ti-credit-card" style="font-size:28px;opacity:0.8;"></i>
+                    </div>
+ 
+                    <!-- Chip simulado -->
+                    <div class="mb-3">
+                        <div style="width:36px;height:28px;background:rgba(255,255,255,0.2);border-radius:4px;"></div>
+                    </div>
+ 
+                    <div class="font-monospace mb-3" style="font-size:18px;letter-spacing:0.2em;">
+                        **** **** ****
+                        <span th:text="${#strings.substring(cuenta.no_tarjeta, 12)}">1234</span>
+                    </div>
+ 
+                    <!-- Titular y expiración -->
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div>
+                            <div style="font-size:10px;opacity:0.7;letter-spacing:0.08em;">TITULAR</div>
+                            <div class="fw-semibold" th:text="${cuenta.usuario.nombre}">Juan</div>
+                        </div>
+                        <div class="text-end">
+                            <div style="font-size:10px;opacity:0.7;letter-spacing:0.08em;">EXPIRA</div>
+                            <!--
+                                cuenta.fecha_expiracion = java.sql.Date
+                                Formato MM/yy
+                            -->
+                            <div class="fw-semibold font-monospace"
+                                 th:text="${#dates.format(cuenta.fecha_expiracion, 'MM/yy')}">
+                                12/28
+                            </div>
+                        </div>
+                    </div>
+ 
+                </div>
+            </div>
+ 
+            <!-- Saldo -->
+            <div class="card border-0 shadow-sm p-4 text-center">
+                <div class="text-muted small mb-1">Saldo disponible</div>
+                <div class="fw-bold text-primary"
+                     style="font-size:2rem;"
+                     th:text="${'$' + #numbers.formatDecimal(cuenta.saldo, 1, 'COMMA', 2, 'POINT') + ' MXN'}">
+                    $0.00 MXN
+                </div>
+                
+            </div>
+        </div>
+ 
+        <!-- ── Detalle de la cuenta ── -->
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+ 
+                    <h6 class="fw-bold text-dark mb-4 d-flex align-items-center gap-2">
+                        <i class="ti ti-id-badge text-primary"></i> Datos de la cuenta
+                    </h6>
+ 
+                    <!-- CLABE -->
+                    <div class="mb-3 p-3 rounded" style="background:#f8f9fa;">
+                        <div class="text-muted small fw-semibold mb-1">CLABE interbancaria</div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="font-monospace fw-bold"
+                                  id="clabeText"
+                                  th:text="${'••••••••••••••' + #strings.substring(cuenta.clabe, 14)}">
+                                ••••••••••••4821
+                            </span>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        onclick="toggleClabe()"
+                                        id="btnClabe">
+                                    <i class="ti ti-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        th:attr="onclick='copyText(\'' + ${cuenta.clabe} + '\')'"
+                                        title="Copiar CLABE">
+                                    <i class="ti ti-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Número de tarjeta -->
+                    <div class="mb-3 p-3 rounded" style="background:#f8f9fa;">
+                        <div class="text-muted small fw-semibold mb-1">Número de tarjeta</div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="font-monospace fw-bold" id="tarjetaText">
+                                **** **** ****
+                                <span th:text="${#strings.substring(cuenta.no_tarjeta, 12)}">1234</span>
+                            </span>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    onclick="toggleTarjeta()"
+                                    id="btnTarjeta">
+                                <i class="ti ti-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+ 
+                    <!-- Fecha de expiración -->
+                    <div class="mb-3 p-3 rounded" style="background:#f8f9fa;">
+                        <div class="text-muted small fw-semibold mb-1">Fecha de expiración</div>
+                        <span class="fw-bold font-monospace"
+                              th:text="${#dates.format(cuenta.fecha_expiracion, 'MM / yyyy')}">
+                            12 / 2028
+                        </span>
+                    </div>
+ 
+                    <!-- CSV -->
+                    <div class="mb-3 p-3 rounded" style="background:#f8f9fa;">
+                        <div class="text-muted small fw-semibold mb-1">CVV / CSV</div>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="fw-bold font-monospace" id="csvText">***</span>
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    onclick="toggleCsv()"
+                                    id="btnCsv">
+                                <i class="ti ti-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+ 
+                    <!-- Titular -->
+                    <div class="p-3 rounded" style="background:#f8f9fa;">
+                        <div class="text-muted small fw-semibold mb-1">Titular</div>
+                        <span class="fw-bold" th:text="${cuenta.usuario.nombre}">Juan</span>
+                        <span class="text-muted font-monospace small ms-2">
+                            @<span th:text="${cuenta.usuario.username}">jramirez</span>
+                        </span>
+                    </div>
+ 
+                </div>
+            </div>
+        </div>
+ 
+    </div>
+ 
+    <div id="datosOcultos"
+         th:attr="data-clabe=${cuenta.clabe},
+                  data-tarjeta=${cuenta.no_tarjeta},
+                  data-csv=${cuenta.csv}"
+         style="display:none;"></div>
+ 
+    <script>
+        const datos = document.getElementById('datosOcultos');
+        const clabe   = datos.getAttribute('data-clabe');
+        const tarjeta = datos.getAttribute('data-tarjeta');
+        const csv     = datos.getAttribute('data-csv');
+ 
+        // Formatear tarjeta en grupos de 4
+        function formatTarjeta(num) {
+            return num.replace(/(\d{4})(\d{4})(\d{4})(\d{4})/, '$1 $2 $3 $4');
+        }
+ 
+        // Formatear CLABE en grupos
+        function formatClabe(num) {
+            return num.replace(/(\d{3})(\d{3})(\d{6})(\d{6})/, '$1 $2 $3 $4');
+        }
+ 
+        let clabeVisible   = false;
+        let tarjetaVisible = false;
+        let csvVisible     = false;
+ 
+        function toggleClabe() {
+            clabeVisible = !clabeVisible;
+            document.getElementById('clabeText').textContent =
+                clabeVisible ? formatClabe(clabe) : '••••••••••••••' + clabe.slice(-4);
+            document.getElementById('btnClabe').innerHTML =
+                clabeVisible ? '<i class="ti ti-eye-off"></i>' : '<i class="ti ti-eye"></i>';
+        }
+ 
+        function toggleTarjeta() {
+            tarjetaVisible = !tarjetaVisible;
+            document.getElementById('tarjetaText').textContent =
+                tarjetaVisible ? formatTarjeta(tarjeta) : '**** **** **** ' + tarjeta.slice(-4);
+            document.getElementById('btnTarjeta').innerHTML =
+                tarjetaVisible ? '<i class="ti ti-eye-off"></i>' : '<i class="ti ti-eye"></i>';
+        }
+ 
+        function toggleCsv() {
+            csvVisible = !csvVisible;
+            document.getElementById('csvText').textContent =
+                csvVisible ? csv : '***';
+            document.getElementById('btnCsv').innerHTML =
+                csvVisible ? '<i class="ti ti-eye-off"></i>' : '<i class="ti ti-eye"></i>';
+        }
+ 
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('CLABE copiada al portapapeles');
+            });
+        }
+    </script>
+ 
+</section>
+</body>
+</html>
