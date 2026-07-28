@@ -70,6 +70,8 @@
         <div class="nb-dropdown" role="menu">
           <a th:href="@{/solicitudCredito}" sec:authorize="hasRole('CLIENTE')" role="menuitem"><i class="ti ti-trending-up"></i> Solicitud de crédito</a>
           <a th:href="@{/adminCreditos}" sec:authorize="hasRole('EJECUTIVO')" role="menuitem"><i class="ti ti-certificate"></i> Lista de créditos</a>
+          <a th:href="@{/abono}" sec:authorize="hasRole('CLIENTE')" role="menuitem"><i class="ti ti-trending-up"></i> Abono</a>
+          
         </div>
       </li>
       <li sec:authorize="hasRole('EJECUTIVO')">
