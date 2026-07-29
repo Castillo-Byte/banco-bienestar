@@ -144,6 +144,7 @@ public class BancaService {
         SolicitudCreditoEntity solicitud = new SolicitudCreditoEntity();
         solicitud.setUsuario(usuario);
         solicitud.setMontoSolicitado(monto);
+        solicitud.setSaldoPendiente(monto);
         solicitud.setFirmaBase64(firmaBase64);
         solicitud.setEstado("PENDIENTE"); // Por simplificación del flujo, se aprueba con la firma del cliente
         solicitud.setFecha(LocalDateTime.now());
@@ -183,6 +184,7 @@ public class BancaService {
         CuentaEntity cuenta = usuario.getCuentas().get(0);
         cuenta.setSaldo(cuenta.getSaldo() + solicitud.getMontoSolicitado());
         cuentaRepository.save(cuenta);
+        solicitud.setSaldoPendiente(solicitud.getMontoSolicitado());
 
         MovimientosEntity movimiento = new MovimientosEntity();
         movimiento.setCuentaOrigen("CRÉDITO-BANCO");
@@ -212,9 +214,103 @@ public class BancaService {
         solicitudCreditoRepository.save(solicitud);
     }
 
+    // Registra un abono al crédito aprobado del cliente y descuenta el monto de su cuenta
+    @Transactional(rollbackFor = Exception.class)
+    public void abonarCredito(String username, Long creditoId, Double monto) {
+        if (monto == null || monto <= 0) {
+            throw new IllegalArgumentException("El monto debe ser mayor a cero.");
+        }
+
+        UsuarioEntity usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+
+        if (usuario.getCuentas() == null || usuario.getCuentas().isEmpty()) {
+            throw new RuntimeException("El usuario no tiene una cuenta bancaria asignada.");
+        }
+
+        SolicitudCreditoEntity credito = solicitudCreditoRepository.findById(creditoId)
+                .orElseThrow(() -> new RuntimeException("Crédito no encontrado."));
+
+        if (credito.getUsuario() == null || !credito.getUsuario().getId().equals(usuario.getId())) {
+            throw new RuntimeException("El crédito seleccionado no pertenece al usuario autenticado.");
+        }
+
+        if (!"APROBADO".equals(credito.getEstado())) {
+            throw new RuntimeException("Solo se puede abonar a un crédito aprobado.");
+        }
+
+        double saldoPendiente = obtenerSaldoPendienteCredito(credito);
+        if (saldoPendiente <= 0) {
+            credito.setEstado("PAGADO");
+            credito.setSaldoPendiente(0.0);
+            solicitudCreditoRepository.save(credito);
+            throw new RuntimeException("Este crédito ya se encuentra pagado.");
+        }
+
+        if (monto > saldoPendiente) {
+            throw new RuntimeException("El abono no puede ser mayor al saldo pendiente del crédito.");
+        }
+
+        CuentaEntity cuenta = usuario.getCuentas().get(0);
+        if (cuenta.getSaldo() < monto) {
+            throw new FondosInsuficientesException("No cuentas con saldo suficiente para realizar este abono.");
+        }
+
+        cuenta.setSaldo(cuenta.getSaldo() - monto);
+        cuentaRepository.save(cuenta);
+
+        double nuevoSaldoPendiente = saldoPendiente - monto;
+        if (nuevoSaldoPendiente < 0.01) {
+            nuevoSaldoPendiente = 0;
+        }
+        credito.setSaldoPendiente(nuevoSaldoPendiente);
+        if (nuevoSaldoPendiente == 0) {
+            credito.setEstado("PAGADO");
+        }
+        solicitudCreditoRepository.save(credito);
+
+        MovimientosEntity movimiento = new MovimientosEntity();
+        movimiento.setCuentaOrigen(cuenta.getClabe());
+        movimiento.setCuentaDestino("CREDITO-BANCO");
+        movimiento.setMonto(monto);
+        movimiento.setDescripcion("Abono a Crédito");
+        movimiento.setFecha(LocalDateTime.now());
+        movimiento.setTipo("Abono Credito");
+        movimiento.setEstadoMovimiento("AUTORIZADO");
+        movimientoRepository.save(movimiento);
+    }
+
     // Lista todas las solicitudes de crédito
     public List<SolicitudCreditoEntity> todasLasSolicitudesCredito() {
         return solicitudCreditoRepository.findAllByOrderByFechaDesc();
+    }
+
+    public List<SolicitudCreditoEntity> creditosAprobadosPorUsuario(String username) {
+        UsuarioEntity usuario = usuarioRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+
+        List<SolicitudCreditoEntity> creditos = solicitudCreditoRepository.findByUsuarioAndEstadoOrderByFechaDesc(usuario, "APROBADO");
+        for (SolicitudCreditoEntity credito : creditos) {
+            if (credito.getSaldoPendiente() == null) {
+                credito.setSaldoPendiente(credito.getMontoSolicitado());
+            }
+        }
+        return creditos;
+    }
+
+    public SolicitudCreditoEntity creditoActivoPorUsuario(String username) {
+        List<SolicitudCreditoEntity> creditos = creditosAprobadosPorUsuario(username);
+        if (creditos.isEmpty()) {
+            return null;
+        }
+        return creditos.get(0);
+    }
+
+    private double obtenerSaldoPendienteCredito(SolicitudCreditoEntity credito) {
+        if (credito.getSaldoPendiente() == null) {
+            return credito.getMontoSolicitado();
+        }
+        return credito.getSaldoPendiente();
     }
 
     private String generarClabeUnica() {

@@ -91,6 +91,10 @@
                                 <span class="fw-bold text-white" th:text="'$' + ${#numbers.formatDecimal(sol.montoSolicitado, 1, 'COMMA', 2, 'POINT')}">$0.00</span>
                                 <span class="badge bg-success text-dark fw-bold rounded-pill text-uppercase small" style="font-size: 0.65rem;" th:text="${sol.estado}">APROBADO</span>
                             </div>
+                            <div class="small text-muted mb-2" th:if="${sol.saldoPendiente != null}">
+                                Saldo pendiente:
+                                <strong class="text-white" th:text="'$' + ${#numbers.formatDecimal(sol.saldoPendiente, 1, 'COMMA', 2, 'POINT')}">$0.00</strong>
+                            </div>
                             <div class="text-muted small font-monospace mb-2" th:text="${#temporals.format(sol.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</div>
 
                             <!-- Firma Guardada -->

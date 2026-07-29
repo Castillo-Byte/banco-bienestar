@@ -427,6 +427,63 @@ body {
 main.container {
   padding-top: 2rem;
   padding-bottom: 2rem;
+  width: min(1180px, calc(100% - 2rem));
+  max-width: none;
+}
+
+main.container > section:not(.wrap) {
+  color: #0A1628;
+}
+
+main.container .bg-white,
+main.container .card:not(.card-glassmorphic):not(.stat-card):not(.wrap .card) {
+  border: 1px solid rgba(13,31,53,0.08);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+}
+
+main.container .table {
+  margin-bottom: 0;
+  border-color: #edf2f7;
+  color: #0A1628;
+}
+
+main.container .table thead th {
+  color: #6B8CAE;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: #f7fafc;
+}
+
+main.container .table td,
+main.container .table th {
+  padding: 0.85rem 0.75rem;
+  vertical-align: middle;
+}
+
+main.container .form-control,
+main.container .form-select,
+main.container .input-group-text {
+  border-color: #d1dce8;
+  border-radius: 8px;
+}
+
+main.container .form-control:focus,
+main.container .form-select:focus {
+  border-color: #C9A84C;
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.16);
+}
+
+main.container .btn-primary,
+main.container .bg-primary {
+  background-color: #C9A84C !important;
+  border-color: #C9A84C !important;
+  color: #0A1628 !important;
+}
+
+main.container .text-primary {
+  color: #C9A84C !important;
 }
 
 .wrap {

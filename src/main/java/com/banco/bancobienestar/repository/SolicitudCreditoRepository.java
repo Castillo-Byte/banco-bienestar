@@ -13,6 +13,8 @@ public interface SolicitudCreditoRepository extends JpaRepository<SolicitudCredi
 
     List<SolicitudCreditoEntity> findByUsuarioOrderByFechaDesc (UsuarioEntity usuario);
 
+    List<SolicitudCreditoEntity> findByUsuarioAndEstadoOrderByFechaDesc(UsuarioEntity usuario, String estado);
+
     List<SolicitudCreditoEntity> findAllByOrderByFechaDesc();
     
     

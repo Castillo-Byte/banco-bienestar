@@ -25,6 +25,9 @@ public class SolicitudCreditoEntity {
     @Column(name = "monto_solicitado",nullable = false)
     private double montoSolicitado;
 
+    @Column(name = "saldo_pendiente")
+    private Double saldoPendiente;
+
     @Column(name = "firma_base64",nullable = false, columnDefinition = "LONGTEXT")
     private String firmaBase64;
 
