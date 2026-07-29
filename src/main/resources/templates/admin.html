@@ -79,11 +79,11 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr th:each="cli : ${clientes}">
-                    <td th:text="${cli.nombre}"></td>
-                    <td th:if="${not #lists.isEmpty(cli.cuentas)}" th:text="${cli.cuentas[0].clabe}"></td>
-                    <td th:text="${#numbers.formatDecimal(cli.cuentas[0].saldo, 1, 'COMMA', 2, 'POINT')}"></td>
-                  </tr>
+                  <tr th:each="cli : ${clientes}">  
+                  <td th:text="${cli.nombre}"></td>
+                  <td th:text="${not #lists.isEmpty(cli.cuentas)} ? ${cli.cuentas[0].clabe} : 'Sin cuenta'"></td>
+                  <td th:text="${not #lists.isEmpty(cli.cuentas)} ? ${#numbers.formatDecimal(cli.cuentas[0].saldo, 1, 'COMMA', 2, 'POINT')} : '—'"></td>
+                </tr>
                 </tbody>
               </table>
             </div>
