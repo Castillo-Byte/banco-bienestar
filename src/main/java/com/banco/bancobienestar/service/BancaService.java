@@ -368,9 +368,13 @@ public void cancelarMovimiento(Long id) {
     movimientoRepository.save(movimiento);
 }
 
+private boolean esCreditoBanco(String valor) {
+    return "CRÉDITO-BANCO".equals(valor) || "CREDITO-BANCO".equals(valor);
+}
+
 private void revertirSaldo(MovimientosEntity movimiento) {
-    if ("CRÉDITO-BANCO".equals(movimiento.getCuentaOrigen())) {
-        // Es un abono de crédito: solo se resta al cliente
+    if (esCreditoBanco(movimiento.getCuentaOrigen())) {
+        // Es un desembolso de crédito (banco → cliente): se resta al cliente
         CuentaEntity cuenta = cuentaRepository.findByClabe(movimiento.getCuentaDestino())
                 .orElseThrow(() -> new RuntimeException("Cuenta no existe."));
         if (cuenta.getSaldo() < movimiento.getMonto()) {
@@ -378,8 +382,31 @@ private void revertirSaldo(MovimientosEntity movimiento) {
         }
         cuenta.setSaldo(cuenta.getSaldo() - movimiento.getMonto());
         cuentaRepository.save(cuenta);
+    } else if (esCreditoBanco(movimiento.getCuentaDestino())) {
+        // Es un abono a crédito (cliente → banco): se devuelve al cliente
+        CuentaEntity cuenta = cuentaRepository.findByClabe(movimiento.getCuentaOrigen())
+                .orElseThrow(() -> new RuntimeException("Cuenta no existe."));
+        cuenta.setSaldo(cuenta.getSaldo() + movimiento.getMonto());
+        cuentaRepository.save(cuenta);
+
+        // Revertir el saldo pendiente del crédito asociado
+        UsuarioEntity usuario = usuarioRepository.findByCuentas_Clabe(cuenta.getClabe())
+                .orElse(null);
+        if (usuario != null) {
+            List<SolicitudCreditoEntity> creditos = solicitudCreditoRepository
+                    .findByUsuarioAndEstadoIn(usuario, List.of("APROBADO", "PAGADO"));
+            for (SolicitudCreditoEntity credito : creditos) {
+                double nuevoSaldo = credito.getSaldoPendiente() + movimiento.getMonto();
+                credito.setSaldoPendiente(nuevoSaldo);
+                if ("PAGADO".equals(credito.getEstado())) {
+                    credito.setEstado("APROBADO");
+                }
+                solicitudCreditoRepository.save(credito);
+                break; // Solo revertir en el primer crédito aplicable
+            }
+        }
     } else {
-        // Es una transferencia: se regresa de destino a origen
+        // Es una transferencia normal: se regresa de destino a origen
         CuentaEntity origen = cuentaRepository.findByClabe(movimiento.getCuentaOrigen())
                 .orElseThrow(() -> new RuntimeException("Cuenta origen no existe."));
         CuentaEntity destino = cuentaRepository.findByClabe(movimiento.getCuentaDestino())
@@ -394,6 +421,7 @@ private void revertirSaldo(MovimientosEntity movimiento) {
         cuentaRepository.save(origen);
     }
 }
+
 
 
     //eliminar usuario

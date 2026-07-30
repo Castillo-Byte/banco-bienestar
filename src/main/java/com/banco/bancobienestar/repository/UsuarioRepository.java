@@ -27,4 +27,6 @@ public interface UsuarioRepository extends JpaRepository<UsuarioEntity,Long> {
                                         @Param("q") String q,
                                         Pageable pageable);
 
+   Optional<UsuarioEntity> findByCuentas_Clabe(String clabe);
+
 }
