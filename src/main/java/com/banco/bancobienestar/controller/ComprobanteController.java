@@ -20,6 +20,7 @@ import com.banco.bancobienestar.entity.UsuarioEntity;
 import com.banco.bancobienestar.repository.MovimientoCuentaRepository;
 import com.banco.bancobienestar.repository.SolicitudCreditoRepository;
 import com.banco.bancobienestar.repository.UsuarioRepository;
+import com.banco.bancobienestar.service.BancaService;
 import com.banco.bancobienestar.service.ComprobantePdfService;
 
 @RestController
@@ -28,15 +29,18 @@ public class ComprobanteController {
     private final UsuarioRepository usuarioRepository;
     private final MovimientoCuentaRepository movimientoCuentaRepository;
     private final SolicitudCreditoRepository solicitudCreditoRepository;
+    private final BancaService bancaService;
     private final ComprobantePdfService comprobantePdfService;
 
     public ComprobanteController(UsuarioRepository usuarioRepository,
                                  MovimientoCuentaRepository movimientoCuentaRepository,
                                  SolicitudCreditoRepository solicitudCreditoRepository,
+                                 BancaService bancaService,
                                  ComprobantePdfService comprobantePdfService) {
         this.usuarioRepository = usuarioRepository;
         this.movimientoCuentaRepository = movimientoCuentaRepository;
         this.solicitudCreditoRepository = solicitudCreditoRepository;
+        this.bancaService = bancaService;
         this.comprobantePdfService = comprobantePdfService;
     }
 
@@ -81,6 +85,43 @@ public class ComprobanteController {
         return respuestaPdf(pdf, "comprobante-credito-" + id + ".pdf");
     }
 
+    @GetMapping("/admin/movimientos/{id}/comprobante")
+    public ResponseEntity<byte[]> descargarComprobanteMovimientoAdmin(@PathVariable Long id) {
+        MovimientosEntity movimiento = movimientoCuentaRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Movimiento no encontrado."));
+
+        byte[] pdf = comprobantePdfService.comprobanteMovimientoAdmin(
+                movimiento,
+                nombrePorClabe(movimiento.getCuentaOrigen()),
+                nombrePorClabe(movimiento.getCuentaDestino()));
+        return respuestaPdf(pdf, "admin-comprobante-movimiento-" + id + ".pdf");
+    }
+
+    @GetMapping("/admin/movimientos/comprobante")
+    public ResponseEntity<byte[]> descargarHistorialMovimientosAdmin() {
+        byte[] pdf = comprobantePdfService.historialMovimientosAdmin(bancaService.todosMovimientos());
+        return respuestaPdf(pdf, "admin-historial-movimientos.pdf");
+    }
+
+    @GetMapping("/admin/creditos/{id}/comprobante")
+    public ResponseEntity<byte[]> descargarComprobanteCreditoAdmin(@PathVariable Long id) {
+        SolicitudCreditoEntity solicitud = solicitudCreditoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitud no encontrada."));
+
+        UsuarioEntity usuario = solicitud.getUsuario();
+        CuentaEntity cuenta = usuario != null && usuario.getCuentas() != null && !usuario.getCuentas().isEmpty()
+                ? usuario.getCuentas().get(0)
+                : null;
+        byte[] pdf = comprobantePdfService.comprobanteCredito(usuario, cuenta, solicitud);
+        return respuestaPdf(pdf, "admin-comprobante-credito-" + id + ".pdf");
+    }
+
+    @GetMapping("/admin/creditos/comprobante")
+    public ResponseEntity<byte[]> descargarHistorialCreditosAdmin() {
+        byte[] pdf = comprobantePdfService.historialCreditosAdmin(bancaService.todasLasSolicitudesCredito());
+        return respuestaPdf(pdf, "admin-historial-creditos.pdf");
+    }
+
     private UsuarioEntity usuarioAutenticado(Authentication auth) {
         if (auth == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Inicia sesion para descargar comprobantes.");
@@ -101,6 +142,12 @@ public class ComprobanteController {
         if (!clabe.equals(movimiento.getCuentaOrigen()) && !clabe.equals(movimiento.getCuentaDestino())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No puedes descargar este movimiento.");
         }
+    }
+
+    private String nombrePorClabe(String clabe) {
+        return usuarioRepository.findByCuentas_Clabe(clabe)
+                .map(UsuarioEntity::getNombre)
+                .orElse("No registrado");
     }
 
     private ResponseEntity<byte[]> respuestaPdf(byte[] pdf, String nombreArchivo) {

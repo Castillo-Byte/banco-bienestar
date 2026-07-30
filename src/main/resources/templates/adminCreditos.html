@@ -26,6 +26,9 @@ Panel creditos ejecutivo · HTML
                 <i class="fa-solid fa-file-invoice-dollar text-primary-accent me-1.5"></i>
                 Solicitudes de Credito
             </h4>
+            <a th:href="@{/admin/creditos/comprobante}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                <i class="fa-solid fa-download me-1"></i> Descargar historial
+            </a>
  
         </div>
  
@@ -106,6 +109,9 @@ Panel creditos ejecutivo · HTML
                             </div>
  
                             <span th:if="${sol.estado != 'PENDIENTE'}" class="text-muted small fst-italic">Sin acciones</span>
+                            <a th:href="@{/admin/creditos/{id}/comprobante(id=${sol.id})}" class="btn btn-sm btn-outline-primary-accent rounded-pill px-3 mt-2">
+                                <i class="fa-solid fa-download me-1"></i> PDF
+                            </a>
                         </td>
                     </tr>
                 </tbody>
