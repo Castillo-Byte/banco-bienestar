@@ -29,9 +29,9 @@
                 <p class="text-muted small mb-2 text-start fw-semibold">Cuentas asociadas</p>
                 <div th:each="cuenta : ${usuario.cuentas}"
                      class="d-flex justify-content-between align-items-center mb-2 p-2 rounded"
-                     style="background:#f8f9fa;">
+                     style="background:rgba(255,255,255,0.05);">
                     <div class="text-start">
-                        <div class="small fw-semibold text-dark font-monospace">
+                        <div class="small fw-semibold font-monospace">
                             ••••••••••••••<span th:text="${#strings.substring(cuenta.clabe, 14)}">4821</span>
                         </div>
                         <div class="text-muted" style="font-size:11px;">CLABE</div>
@@ -64,7 +64,7 @@
  
             <!-- ── Datos generales ── -->
             <div class="card border-0 shadow-sm p-4">
-                <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
                     <i class="ti ti-user text-primary"></i> Datos de la cuenta
                 </h6>
  
@@ -118,7 +118,7 @@
  
             <!-- ── Cambiar contraseña ── -->
             <div class="card border-0 shadow-sm p-4">
-                <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <h6 class="fw-bold mb-3 d-flex align-items-center gap-2">
                     <i class="ti ti-lock text-primary"></i> Cambiar contraseña
                 </h6>
  
