@@ -96,6 +96,9 @@
                                 <strong class="text-white" th:text="'$' + ${#numbers.formatDecimal(sol.saldoPendiente, 1, 'COMMA', 2, 'POINT')}">$0.00</strong>
                             </div>
                             <div class="text-muted small font-monospace mb-2" th:text="${#temporals.format(sol.fecha, 'dd/MM/yyyy HH:mm')}">Fecha</div>
+                            <a th:href="@{/creditos/{id}/comprobante(id=${sol.id})}" class="btn btn-sm btn-outline-primary-accent rounded-pill px-3 mb-2">
+                                <i class="fa-solid fa-download me-1"></i> Descargar comprobante
+                            </a>
 
                             <!-- Firma Guardada -->
                             <div class="mt-2 text-center border-top border-white-10 pt-2">

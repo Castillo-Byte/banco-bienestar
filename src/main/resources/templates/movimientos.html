@@ -49,6 +49,9 @@
       <div class="card-hd-left">
         <i class="ti ti-clock-history" aria-hidden="true"></i> Historial de movimientos
       </div>
+      <a th:href="@{/movimientos/historial/comprobante}" class="btn btn-sm btn-outline-secondary">
+        <i class="ti ti-download" aria-hidden="true"></i> Descargar historial
+      </a>
       <div class="search-wrap">
         <i class="ti ti-search" aria-hidden="true"></i>
   
@@ -66,13 +69,14 @@
           <th>Descripción / CLABEs</th>
           <th class="td-fecha">Fecha</th>
           <th class="right">Monto</th>
+          <th class="right">Comprobante</th>
         </tr>
       </thead>
       <tbody>
  
         <!-- Sin movimientos -->
         <tr th:if="${#lists.isEmpty(movimientos)}">
-          <td colspan="4">
+          <td colspan="5">
             <div class="empty">
               <i class="ti ti-inbox" aria-hidden="true"></i>
               <p>No hay movimientos registrados.</p>
@@ -118,6 +122,11 @@
                              '$' + #numbers.formatDecimal(mov.monto, 1, 'COMMA', 2, 'POINT') + ' MXN'}">
               -$3,500.00 MXN
             </span>
+          </td>
+          <td class="right">
+            <a th:href="@{/movimientos/{id}/comprobante(id=${mov.id})}" class="btn btn-sm btn-outline-secondary" title="Descargar comprobante">
+              <i class="ti ti-download" aria-hidden="true"></i>
+            </a>
           </td>
  
         </tr>
