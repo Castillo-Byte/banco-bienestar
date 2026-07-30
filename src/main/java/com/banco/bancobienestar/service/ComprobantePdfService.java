@@ -193,6 +193,82 @@ public class ComprobantePdfService {
         });
     }
 
+    public byte[] listaClientesAdmin(List<UsuarioEntity> clientes) {
+        return crearPdf(document -> {
+            agregarEncabezado(document, "Lista administrativa de clientes");
+
+            PdfPTable tabla = new PdfPTable(new float[] { 1f, 2.2f, 2f, 2.6f, 1.6f });
+            tabla.setWidthPercentage(100);
+            agregarEncabezadoTabla(tabla, "ID");
+            agregarEncabezadoTabla(tabla, "Nombre");
+            agregarEncabezadoTabla(tabla, "Usuario");
+            agregarEncabezadoTabla(tabla, "CLABE");
+            agregarEncabezadoTabla(tabla, "Saldo");
+
+            for (UsuarioEntity cliente : clientes) {
+                CuentaEntity cuenta = cuentaPrincipalPdf(cliente);
+                agregarCelda(tabla, String.valueOf(cliente.getId()));
+                agregarCelda(tabla, valor(cliente.getNombre()));
+                agregarCelda(tabla, valor(cliente.getUsername()));
+                agregarCelda(tabla, cuenta != null ? cuenta.getClabe() : "Sin cuenta");
+                agregarCelda(tabla, cuenta != null ? moneda(cuenta.getSaldo()) : "Sin saldo");
+            }
+
+            document.add(tabla);
+            agregarPie(document);
+        });
+    }
+
+    public byte[] historialClienteAdmin(UsuarioEntity cliente,
+                                        List<MovimientosEntity> movimientos,
+                                        List<SolicitudCreditoEntity> solicitudes) {
+        return crearPdf(document -> {
+            CuentaEntity cuenta = cuentaPrincipalPdf(cliente);
+            agregarEncabezado(document, "Historial administrativo de cliente");
+            agregarDato(document, "Cliente", cliente.getNombre());
+            agregarDato(document, "Usuario", cliente.getUsername());
+            agregarDato(document, "CLABE", cuenta != null ? cuenta.getClabe() : "Sin cuenta");
+            agregarDato(document, "Saldo actual", cuenta != null ? moneda(cuenta.getSaldo()) : "Sin saldo");
+            agregarEspacio(document);
+
+            document.add(new Paragraph("Movimientos", SUBTITULO));
+            PdfPTable tablaMovimientos = new PdfPTable(new float[] { 1f, 1.8f, 2f, 1.8f, 1.4f });
+            tablaMovimientos.setWidthPercentage(100);
+            agregarEncabezadoTabla(tablaMovimientos, "Folio");
+            agregarEncabezadoTabla(tablaMovimientos, "Fecha");
+            agregarEncabezadoTabla(tablaMovimientos, "Descripcion");
+            agregarEncabezadoTabla(tablaMovimientos, "Estado");
+            agregarEncabezadoTabla(tablaMovimientos, "Monto");
+            for (MovimientosEntity movimiento : movimientos) {
+                agregarCelda(tablaMovimientos, String.valueOf(movimiento.getId()));
+                agregarCelda(tablaMovimientos, FECHA.format(movimiento.getFecha()));
+                agregarCelda(tablaMovimientos, valor(movimiento.getDescripcion()));
+                agregarCelda(tablaMovimientos, valor(movimiento.getEstadoMovimiento()));
+                agregarCelda(tablaMovimientos, moneda(movimiento.getMonto()));
+            }
+            document.add(tablaMovimientos);
+            agregarEspacio(document);
+
+            document.add(new Paragraph("Solicitudes de credito", SUBTITULO));
+            PdfPTable tablaCreditos = new PdfPTable(new float[] { 1f, 1.8f, 1.7f, 1.7f, 1.5f });
+            tablaCreditos.setWidthPercentage(100);
+            agregarEncabezadoTabla(tablaCreditos, "Folio");
+            agregarEncabezadoTabla(tablaCreditos, "Fecha");
+            agregarEncabezadoTabla(tablaCreditos, "Monto");
+            agregarEncabezadoTabla(tablaCreditos, "Pendiente");
+            agregarEncabezadoTabla(tablaCreditos, "Estado");
+            for (SolicitudCreditoEntity solicitud : solicitudes) {
+                agregarCelda(tablaCreditos, String.valueOf(solicitud.getId()));
+                agregarCelda(tablaCreditos, FECHA.format(solicitud.getFecha()));
+                agregarCelda(tablaCreditos, moneda(solicitud.getMontoSolicitado()));
+                agregarCelda(tablaCreditos, solicitud.getSaldoPendiente() != null ? moneda(solicitud.getSaldoPendiente()) : "No registrado");
+                agregarCelda(tablaCreditos, valor(solicitud.getEstado()));
+            }
+            document.add(tablaCreditos);
+            agregarPie(document);
+        });
+    }
+
     private byte[] crearPdf(DocumentoBuilder builder) {
         try (ByteArrayOutputStream salida = new ByteArrayOutputStream()) {
             Document document = new Document(PageSize.LETTER, 36, 36, 42, 36);
@@ -284,6 +360,13 @@ public class ComprobantePdfService {
 
     private String valor(String valor) {
         return valor == null || valor.isBlank() ? "No registrado" : valor;
+    }
+
+    private CuentaEntity cuentaPrincipalPdf(UsuarioEntity usuario) {
+        if (usuario.getCuentas() == null || usuario.getCuentas().isEmpty()) {
+            return null;
+        }
+        return usuario.getCuentas().get(0);
     }
 
     @FunctionalInterface

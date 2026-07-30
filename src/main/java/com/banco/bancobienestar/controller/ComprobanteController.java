@@ -122,6 +122,33 @@ public class ComprobanteController {
         return respuestaPdf(pdf, "admin-historial-creditos.pdf");
     }
 
+    @GetMapping("/admin/clientes/comprobante")
+    public ResponseEntity<byte[]> descargarListaClientesAdmin() {
+        byte[] pdf = comprobantePdfService.listaClientesAdmin(usuarioRepository.findByRol("CLIENTE"));
+        return respuestaPdf(pdf, "admin-lista-clientes.pdf");
+    }
+
+    @GetMapping("/admin/clientes/{id}/historial")
+    public ResponseEntity<byte[]> descargarHistorialClienteAdmin(@PathVariable Long id) {
+        UsuarioEntity cliente = usuarioRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado."));
+
+        if (!"CLIENTE".equals(cliente.getRol())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El usuario seleccionado no es cliente.");
+        }
+
+        CuentaEntity cuenta = cliente.getCuentas() != null && !cliente.getCuentas().isEmpty()
+                ? cliente.getCuentas().get(0)
+                : null;
+        List<MovimientosEntity> movimientos = cuenta != null
+                ? movimientoCuentaRepository.findByCuentaOrigenOrCuentaDestinoOrderByFechaDesc(cuenta.getClabe(), cuenta.getClabe())
+                : List.of();
+        List<SolicitudCreditoEntity> solicitudes = solicitudCreditoRepository.findByUsuarioOrderByFechaDesc(cliente);
+
+        byte[] pdf = comprobantePdfService.historialClienteAdmin(cliente, movimientos, solicitudes);
+        return respuestaPdf(pdf, "admin-historial-cliente-" + id + ".pdf");
+    }
+
     private UsuarioEntity usuarioAutenticado(Authentication auth) {
         if (auth == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Inicia sesion para descargar comprobantes.");

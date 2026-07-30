@@ -93,6 +93,10 @@
                     <i class="ti ti-users text-primary"></i> Lista de clientes
                 </h6>
 
+                <div class="d-flex gap-2 flex-wrap">
+                <a th:href="@{/admin/clientes/comprobante}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fa-solid fa-download me-1"></i> Descargar lista
+                </a>
                 <form method="get" th:action="@{/ejecutivoUsuarios}" class="d-flex gap-2">
                     <div class="input-group input-group-sm" style="width:240px;">
                         <span class="input-group-text"><i class="ti ti-search"></i></span>
@@ -104,6 +108,7 @@
                         Limpiar
                     </a>
                 </form>
+                </div>
             </div>
 
             <!-- Tabla -->
@@ -150,13 +155,16 @@
     <i class="fa-solid fa-pen"></i>
 </button>
                                     </form>
+                                    <a th:href="@{/admin/clientes/{id}/historial(id=${u.id})}"
+                                    class="btn btn-secondary rounded shadow-sm"
+                                    title="Descargar historial"><i class="fa-solid fa-download"></i></a>
 
                                 </div>
 
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(usuarios)}">
-                            <td colspan="3" class="text-center text-muted py-3">
+                            <td colspan="4" class="text-center text-muted py-3">
                                 No se encontraron clientes.
                             </td>
                             

@@ -1,6 +1,7 @@
 package com.banco.bancobienestar.repository;
 
 import java.util.Optional;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ public interface UsuarioRepository extends JpaRepository<UsuarioEntity,Long> {
    Optional<UsuarioEntity> findByNombre(String nombre);
 
    Page<UsuarioEntity> findByRol(String rol, Pageable pageable);
+   List<UsuarioEntity> findByRol(String rol);
 
     // Lista paginada de clientes filtrando por nombre o username
     @Query("SELECT u FROM UsuarioEntity u WHERE u.rol = :rol " +
