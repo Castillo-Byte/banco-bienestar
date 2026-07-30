@@ -60,7 +60,7 @@ public class PerfilController {
         }
 
         try {
-            bancaService.actualizarUsuario(
+            bancaService.actualizarPerfilUsuario(
                     usuario.getId(),
                     perfilForm.getNombre(),
                     perfilForm.getUsername(),
@@ -98,7 +98,7 @@ public class PerfilController {
         }
 
         try {
-            bancaService.actualizarUsuario(
+            bancaService.actualizarPerfilUsuario(
                     usuario.getId(),
                     usuario.getNombre(),   // no cambian en este form
                     usuario.getUsername(), // no cambian en este form

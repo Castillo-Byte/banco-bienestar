@@ -62,6 +62,11 @@
           <i class="nb-chev" aria-hidden="true"></i>
         </button>
       </li>
+      <li sec:authorize="hasRole('EJECUTIVO')">
+        <a th:href="@{/perfil}" class="nb-link">
+          <i class="ti ti-user-circle" aria-hidden="true"></i> Perfil ejecutivo
+        </a>
+      </li>
       <li>
         <button class="nb-link">
           <i class="ti ti-chart-line" aria-hidden="true"></i> Creditos

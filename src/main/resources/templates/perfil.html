@@ -27,6 +27,11 @@
                 <!-- Cuentas asociadas -->
                 <hr>
                 <p class="text-muted small mb-2 text-start fw-semibold">Cuentas asociadas</p>
+                <div th:if="${#lists.isEmpty(usuario.cuentas)}"
+                     class="text-muted small text-start p-2 rounded"
+                     style="background:rgba(255,255,255,0.05);">
+                    Sin cuentas bancarias asociadas.
+                </div>
                 <div th:each="cuenta : ${usuario.cuentas}"
                      class="d-flex justify-content-between align-items-center mb-2 p-2 rounded"
                      style="background:rgba(255,255,255,0.05);">

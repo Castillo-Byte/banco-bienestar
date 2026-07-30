@@ -471,4 +471,27 @@ public void actualizarUsuario(Long id, String nombre, String username, String pa
         cuentaRepository.save(cuenta);
 }
 
+@Transactional(rollbackFor = Exception.class)
+public void actualizarPerfilUsuario(Long id, String nombre, String username, String password) {
+    UsuarioEntity usuario = usuarioRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado."));
+
+    if (username != null && !username.equals(usuario.getUsername())) {
+        usuarioRepository.findByUsername(username).ifPresent(u -> {
+            if (!u.getId().equals(id)) {
+                throw new RuntimeException("El nombre de usuario ya esta registrado por otro usuario.");
+            }
+        });
+        usuario.setUsername(username);
+    }
+
+    usuario.setNombre(nombre);
+
+    if (password != null && !password.isBlank()) {
+        usuario.setPassword(passwordEncoder.encode(password));
+    }
+
+    usuarioRepository.save(usuario);
+}
+
 }
